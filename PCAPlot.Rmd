@@ -1,0 +1,78 @@
+---
+title: "PCA Plots"
+output: html_document
+---
+## Making PCA Plots
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r setup 1.5, message=FALSE}
+library(tidyverse)
+library(readr)
+```
+
+```{r setup2, message=FALSE, warning=FALSE}
+setwd("/Users/racheledidin/Desktop/plink/")
+#read in data
+pca <- read_table2("./clarkia.eigenvec", col_names=FALSE)
+eigenval <- scan("./clarkia.eigenval")
+#sort out data
+#remove "nuisance column"
+pca <- pca[,-1]
+#set names
+names(pca)[1] <- "ind"
+names(pca)[2:ncol(pca)] <- paste0("PC", 1:(ncol(pca)-1))
+#sort out individual species/populations
+#spp
+spp <- rep(NA, length(pca$ind))
+spp[grep("x",pca$ind)] <- "xantiana"
+spp[grep("p", pca$ind)] <- "parviflora"
+#location
+loc <- rep(NA, length(pca$ind))
+loc[grep("S", pca$ind)] <- "Sawmill Rd"
+loc[grep("S22", pca$ind)] <- "Site 22"
+loc[grep("SM", pca$ind)] <- "Squirrel Mountain"
+#combine for plotting in different colors
+spp_loc <- paste0(spp, "_", loc)
+#remake as data frame
+pca <- as.tibble(data.frame(pca, spp, loc, spp_loc))
+#convert eigenvalues to percentage variance explained (pve)
+pve <- data.frame(PC=1:20, pve=eigenval/sum(eigenval)*100)
+```
+
+```{r cumulative percent plot}
+#make plot
+a <- ggplot(pve, aes(PC, pve))+
+  geom_bar(stat="identity")
+a + ylab("Percentage variance explained")+
+  theme_light()
+```
+
+```{r cumulative sum}
+#calculate cumulative sum of percentage variance explained
+cumsum(pve$pve)
+```
+# Make PCA plot where the color is location and shape is species
+```{r plot1}
+b <- ggplot(pca, aes(PC1, PC2, col=loc, shape=spp))+
+  geom_point(size=2, alpha=.6, position="jitter")+
+  scale_shape_manual(values=c(0, 1, 2))
+b <- b+coord_equal()+theme_light()
+b+
+  xlab(paste0("PC1 (", signif(pve$pve[1], 3), "%)")) +
+  ylab(paste0("PC2 (", signif(pve$pve[2], 3), "%)"))
+```
+
+# Make PCA plot where the color is species and the shape is location
+```{r plot2}
+c <- ggplot(pca, aes(PC1, PC2, col=spp, shape=loc))+
+  geom_point(size=1, alpha=.8, position="jitter")+
+  scale_shape_manual(values=c(0, 1, 2))
+c <- c+coord_equal()+theme_light()
+c+
+  xlab(paste0("PC1 (", signif(pve$pve[1], 3), "%)")) +
+  ylab(paste0("PC2 (", signif(pve$pve[2], 3), "%)"))
+```
+
+

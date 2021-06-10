@@ -1,0 +1,31 @@
+---
+title: "vcftroubleshooting"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+### Using data from pinfsc50: these plots work
+```{r code}
+library(vcfR)
+pkg <- "pinfsc50"
+vcf_file <- system.file("extdata", "pinf_sc50.vcf.gz", package = pkg)
+vcf <- read.vcfR( vcf_file, verbose = FALSE )
+chrom <- create.chromR(name='Supercontig', vcf=vcf )
+plot(chrom)
+
+
+```
+
+### Using my own data: these plots do not work
+```{r my data}
+clarkiamodified <- read.vcfR("Data/clarkiamodified.vcf", verbose = FALSE)
+chrom2 <- create.chromR(name='SuperScaffold100095', vcf= clarkiamodified)
+plot(chrom2)
+```
+
+
